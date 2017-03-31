@@ -9,6 +9,7 @@ import Data.Functor.Identity
 import Control.Monad.Identity
 import Data.Monoid
 import Data.Functor.Contravariant
+import Control.Monad.Reader
 
 
 data Point = Point {
@@ -104,17 +105,16 @@ foldMapOf_ l f s = getConst (g s)
 toListOf_ :: Getting_ [a] s a -> s -> [a]
 toListOf_ l = foldMapOf_ l (:[])
 
--- pointGetting :: Monoid m => Getting_ m Point Double
+-- pointGetting :: Getting_ (Sum Double) Point Double
 pointGetting :: Fold_ Point Double
 pointGetting g (Point x y) = Const (getConst $ g (x + y))
-
 
 -- segmentGetting :: Monoid m => Getting_ m Segment Double
 segmentGetting :: Fold_ Segment Double
 segmentGetting g (Segment start end) =
-  Const $ getConst $ g $ (getSum $ foldPoint start) + (getSum $ foldPoint end)
+  Const $ getConst $ g $ getSum $ (foldPoint start) <> (foldPoint end)
   where
-    foldPoint = foldMapOf pointGetting Sum
+    foldPoint = foldMapOf_ pointGetting Sum
 
 
 fold1 = foldMapOf pointGetting Sum (makePoint (1,2))
@@ -127,6 +127,37 @@ pointList2 = toListOf extremityCoordinates (makeSegment (1,2) (2,3))
 
 myMapped :: Setter (Identity a) (Identity b) a b
 myMapped g (Identity a) = Identity <$> g a
+
+
+-- << Getters
+type Getter_ s a = forall r . Getting_ r s a
+
+type Getter__ s a = forall f .
+  (Contravariant f, Functor f) => (a -> f a) -> s -> f s
+
+
+---- asks --------
+ask_ :: Monad m => ReaderT a m a
+ask_ = ReaderT (\a -> return a)
+
+asks_ :: Monad m => (r -> a) -> ReaderT r m a
+asks_ f = ReaderT (\r -> return $ f r)
+------------------
+
+view_ :: Monad m => Getting_ a s a -> ReaderT s m a
+view_ l = asks_ $ getConst . (l Const)
+
+getterPointX :: Getting Double Point Double
+getterPointX f (Point x y) = Const $ getConst $ f x
+
+getterPointY :: Getting Double Point Double
+getterPointY f (Point x y) = Const $ getConst $ f y
+
+coordX :: Double
+coordX = runIdentity $
+  (runReaderT $ view_ getterPointX) (makePoint (1,2))
+-- >>
+
 
 
 -- << Examples
