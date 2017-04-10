@@ -1,4 +1,6 @@
-{-# LANGUAGE TemplateHaskell, RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE TupleSections   #-}
 
 module Lib where
 
@@ -159,6 +161,42 @@ coordX = runIdentity $
 -- >>
 
 
+-- Lenses
+
+type Lens_ s t a b =
+  forall f. Functor f => (a -> f b) -> s -> f t
+
+__1 :: Lens (a, t) (b, t) a b
+__1 f (a1, a2) = (,a2) <$> f a1
+
+__2 :: Lens (t, a) (t, b) a b
+__2  f (a1, a2) = (a1,) <$> f a2
+
+lens_ :: (s -> a) -> (s -> b -> t) -> Lens_ s t a b
+lens_ f g = \h s ->
+  let a = f s
+      bt = g s
+  in bt <$> (h a)
+
+tuple1 = over_ __1 length ("You are sexy and you know it", 1)
+
+tuple2 = set_ __2 7 (4, 1)
+
+tuple3 = toListOf_ __1 (4, 1)
+
+tuple4 = set_ __2 7 (4, 1)
+
+pointLensX :: Lens_ Point Point Double Double
+pointLensX = lens_ _positionX (\p x -> p { _positionX = x })
+
+pointLensY :: Lens_ Point Point Double Double
+pointLensY = lens_ _positionY (\p y -> p { _positionY = y })
+
+segmentLensStart :: Lens_ Segment Segment Point Point
+segmentLensStart = lens_ _segmentStart (\s p -> s { _segmentStart = p })
+
+segmentLensEnd :: Lens_ Segment Segment Point Point
+segmentLensEnd = lens_ _segmentEnd (\s p -> s { _segmentEnd = p })
 
 -- << Examples
 set1 = over_ pointCoordinates negate (makePoint (1, 2))
