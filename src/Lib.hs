@@ -10,7 +10,9 @@ import Control.Applicative
 import Data.Functor.Identity
 import Control.Monad.Identity
 import Data.Monoid
-import Data.Functor.Contravariant
+import Data.Functor.Contravariant (Contravariant, (>$<))
+import Data.Profunctor
+
 import Control.Monad.Reader
 
 
@@ -29,6 +31,9 @@ makeLenses ''Segment
 
 makePoint :: (Double, Double) -> Point
 makePoint (x, y) = Point x y
+
+unmakePoint :: Point -> (Double, Double)
+unmakePoint (Point x y) = (x,y)
 
 makeSegment :: (Double, Double) -> (Double, Double) -> Segment
 makeSegment start end = Segment (makePoint start) (makePoint end)
@@ -81,7 +86,7 @@ type Setter_ s t a b = (a -> Identity b) -> s -> Identity t
 over_ :: Setter s t a b -> (a -> b) -> s -> t
 over_ f g s = runIdentity $ f g' s
   where
-    g' = (Identity . g)
+    g' = Identity . g
 
 set_ :: Setter_ s t a b ->  b -> s -> t
 set_ f v s = over f (const v) s
@@ -162,9 +167,10 @@ coordX = runIdentity $
 
 
 -- Lenses
-
 type Lens_ s t a b =
-  forall f. Functor f => (a -> f b) -> s -> f t
+  forall f . Functor f => (a -> f b) -> s -> f t
+
+type Lens'_ s a = Lens_ s s a a
 
 __1 :: Lens (a, t) (b, t) a b
 __1 f (a1, a2) = (,a2) <$> f a1
@@ -197,6 +203,58 @@ segmentLensStart = lens_ _segmentStart (\s p -> s { _segmentStart = p })
 
 segmentLensEnd :: Lens_ Segment Segment Point Point
 segmentLensEnd = lens_ _segmentEnd (\s p -> s { _segmentEnd = p })
+
+
+-- Isos
+data Exchange_ a b s t = Exchange_ (s -> a) (b -> t)
+
+data ContraExchange a b t s = ContraExchange (s -> a) (b -> t)
+
+fromContraEx :: ContraExchange a b t s -> Exchange_ a b s t
+fromContraEx (ContraExchange sa bt) = Exchange_ sa bt
+
+toContraEx :: Exchange_ a b s t -> ContraExchange a b t s
+toContraEx (Exchange_ sa bt) = ContraExchange sa bt
+
+instance Functor (Exchange_ a b s) where
+  fmap f (Exchange_ sa bt) = Exchange_ sa (f . bt)
+
+instance Contravariant (ContraExchange a b t) where
+  contramap f (ContraExchange sa bt) = ContraExchange (sa . f) bt
+
+-- The whole profuctor is p = Exchange_ a b
+instance Profunctor (Exchange_ a b) where
+  lmap f ex = fromContraEx $ f >$< toContraEx ex
+  rmap f ex = f <$> ex
+  dimap f g ex =  fromContraEx  $ f >$< toContraEx (g <$> ex)
+
+type Iso_ s t a b =
+  forall p f . (Profunctor p, Functor f) => p a (f b) -> p s (f t)
+
+type AnIso_ s t a b =
+  Exchange_ a b a (Identity b) -> Exchange_ a b s (Identity t)
+
+iso_ :: (s -> a) -> (b -> t) -> Iso_ s t a b
+iso_ sa bt = dimap sa (fmap bt)
+
+withIso_ :: AnIso_ s t a b -> ((s -> a) -> (b -> t) -> r) -> r
+withIso_ ai k =
+  let Exchange_ sa bt = ai $ Exchange_ id Identity
+  in k sa (runIdentity . bt)
+
+from_ :: AnIso_ s t a b -> Iso b a t s
+from_ ai = withIso_ ai $ \sa bt -> iso_ bt sa
+
+unmakePointIso :: Iso_ Point Point (Double, Double) (Double, Double)
+unmakePointIso = iso_ unmakePoint makePoint
+
+makePointIso :: Iso_ (Double, Double) (Double, Double) Point Point
+makePointIso = from_ unmakePointIso
+
+is1 = over_ unmakePointIso (\(a, b)-> (b*10, a*10)) (makePoint (10, 20))
+
+is2 = over_ makePointIso (\(Point x y) -> Point (y/2) (x/3)) (4, 5)
+--------------------------------------------
 
 -- << Examples
 set1 = over_ pointCoordinates negate (makePoint (1, 2))
