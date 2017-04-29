@@ -256,6 +256,18 @@ is1 = over_ unmakePointIso (\(a, b)-> (b*10, a*10)) (makePoint (10, 20))
 is2 = over_ makePointIso (\(Point x y) -> Point (y/2) (x/3)) (4, 5)
 --------------------------------------------
 
+-------------------- Prisms ------------------------------------
+class Profunctor p => Choice_ p where
+  left'' :: p a b -> p (Either a c) (Either b c)
+  right'' :: p a b -> p (Either c a) (Either c b)
+
+type Prism_ s t a b = forall p f .
+  (Choice_ p, Applicative f) => p a (f b) -> p s (f t)
+
+prism_ :: (b -> t) -> (s -> Either t a) -> Prism_ s t a b
+prism_ bt sEa = dimap sEa (either pure (fmap bt)) . right''
+----------------------------------------------------------------
+
 -- << Examples
 set1 = over_ pointCoordinates negate (makePoint (1, 2))
 set2 = set_ pointCoordinates 7 (makePoint (1, 2))
