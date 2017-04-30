@@ -74,7 +74,6 @@ travPoint2 = pointCoordinates deleteIfNegative (makePoint (-1,2))
 travSegment1 = extremityCoordinates deleteIfNegative (makeSegment (1,2) (1,3))
 travSegment2 = extremityCoordinates deleteIfNegative (makeSegment (1,-2) (1,3))
 
-
 traverse' :: Traversable t => Traversal (t a) (t b) a b
 traverse' = traverse
 -- >>
@@ -95,6 +94,14 @@ scaleSegment :: Double -> Segment -> Segment
 scaleSegment n seg = over_ extremityCoordinates (n*) seg
 -- >>
 
+---- asks --------
+ask_ :: Monad m => ReaderT a m a
+ask_ = ReaderT (\a -> return a)
+
+asks_ :: Monad m => (r -> a) -> ReaderT r m a
+asks_ f = ReaderT (\r -> return $ f r)
+------------------
+
 -- << Folds
 type Getting_ r s a = (a -> Const r a) -> s -> Const r s
 
@@ -112,6 +119,9 @@ foldMapOf_ l f s = getConst (g s)
 toListOf_ :: Getting_ [a] s a -> s -> [a]
 toListOf_ l = foldMapOf_ l (:[])
 
+preview_ :: Monad m => Getting (First a) s a -> ReaderT s m (Maybe a)
+preview_ l = asks $ getFirst . foldMapOf l (First . Just)
+
 -- pointGetting :: Getting_ (Sum Double) Point Double
 pointGetting :: Fold_ Point Double
 pointGetting g (Point x y) = Const (getConst $ g (x + y))
@@ -123,12 +133,14 @@ segmentGetting g (Segment start end) =
   where
     foldPoint = foldMapOf_ pointGetting Sum
 
-
 fold1 = foldMapOf pointGetting Sum (makePoint (1,2))
 fold2 = foldMapOf segmentGetting Sum (makeSegment (1,2) (2,3))
 
 pointList1 = toListOf pointCoordinates (makePoint (1,2))
 pointList2 = toListOf extremityCoordinates (makeSegment (1,2) (2,3))
+
+prePoint :: ReaderT Segment IO (Maybe Double)
+prePoint = preview_ segmentGetting
 -- >>
 
 
@@ -142,14 +154,6 @@ type Getter_ s a = forall r . Getting_ r s a
 type Getter__ s a = forall f .
   (Contravariant f, Functor f) => (a -> f a) -> s -> f s
 
-
----- asks --------
-ask_ :: Monad m => ReaderT a m a
-ask_ = ReaderT (\a -> return a)
-
-asks_ :: Monad m => (r -> a) -> ReaderT r m a
-asks_ f = ReaderT (\r -> return $ f r)
-------------------
 
 view_ :: Monad m => Getting_ a s a -> ReaderT s m a
 view_ l = asks_ $ getConst . (l Const)
@@ -266,7 +270,14 @@ type Prism_ s t a b = forall p f .
 
 prism_ :: (b -> t) -> (s -> Either t a) -> Prism_ s t a b
 prism_ bt sEa = dimap sEa (either pure (fmap bt)) . right''
+
+__Right :: Prism (Either c a) (Either c b) a b
+__Right = prism Right (either (Left . Left) Right)
+
+__Just :: Prism (Maybe a) (Maybe b) a b
+__Just = prism Just (maybe (Left Nothing) Right)
 ----------------------------------------------------------------
+
 
 -- << Examples
 set1 = over_ pointCoordinates negate (makePoint (1, 2))
