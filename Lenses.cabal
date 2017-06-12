@@ -23,6 +23,8 @@ library
                      , Fold
                      , Getting
                      , Getter
+                     , Lens
+                     , Iso
   build-depends:       base >= 4.7 && < 5
                      , lens
                      , contravariant
