@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Iso where
 
