@@ -17,9 +17,9 @@ traverse' :: Traversable t => Traversal (t a) (t b) a b
 traverse' = traverse
 
 
--- | Examples
+-- | Some Traversal Examples
 
--- | Traverse a Human affecting their super-powers:
+-- | Traverse a Human affecting its super-powers:
 --   Applicative f => (Maybe SuperPower -> f (Maybe (SuperPower, String))) -> Human -> f Human
 --   When you affect a Human's super-power, you also affect its heroName
 experimentWithHuman :: Traversal Human Human (Maybe SuperPower) (Maybe (SuperPower, String))
@@ -36,8 +36,16 @@ updatePersonCivilStatus g (Person self' father' mother' children' civilStatus' _
   let newCivilStatus = g civilStatus'
   in Person self' father' mother' children' <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
 
+-- | Traverse a Person affecting its children:
+--   Applicative f => (Human -> Human) -> Person -> f Person
+--   When you affect a person's civil-status you also affect their couple.
+updatePersonChildren :: Traversal Person Person [Human] [Human]
+updatePersonChildren g person =
+  updateChildren person  <$> g (children person)
+  where
+    updateChildren p newChildren = p { children = newChildren }
 
--- | Traverse a Person affecting their super-powers
+-- | Traverse a Person affecting their super-powersw
 --   Applicative f => (Maybe SuperPower -> f (Maybe (SuperPower, String))) -> Person -> f Person
 alterPersonSuperPowers :: Traversal Person Person (Maybe SuperPower) (Maybe (SuperPower, String))
 alterPersonSuperPowers g person =
@@ -53,27 +61,4 @@ alterPersonChildrenSuperPowers g person = updateChildren  person <$> sequenceA (
     updateChildren p newChildren = p { children = newChildren }
 
 
-
-
-
-
--- -- | Examples: Applicative f => (Double -> f Double) -> Point -> f Point
--- pointCoordinates :: Traversal Point Point Double Double
--- pointCoordinates g (Point x y) = Point <$> g x <*> g y
-
--- positionX :: Traversal Point Point Double Double
--- positionX g (Point x y) = Point <$> g x <*> pure y
-
--- positionY :: Traversal Point Point Double Double
--- positionY g (Point x y) = Point <$> pure x <*> g y
-
--- -- | Examples: Applicative f => (Double -> f Double) -> Segment -> f Segment
--- extremityCoordinates :: Traversal Segment Segment Double Double
--- extremityCoordinates g (Segment start end)
---   = Segment <$> pointCoordinates g start <*> pointCoordinates g end
-
--- segmentStart :: Traversal Segment Segment Double Double
--- segmentStart g (Segment start end) = Segment <$> pointCoordinates g start <*> pure end
-
--- segmentEnd :: Traversal Segment Segment Double Double
--- segmentEnd g (Segment start end) = Segment <$> pure start <*> pointCoordinates g end
+-- | Value Examples

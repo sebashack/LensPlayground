@@ -15,6 +15,7 @@ data SuperPower = LaserSight
                 | SuperSpeed
                 | SuperStrengh
                 | CyborgBody
+                | Electromagnetism
   deriving Show
 
 data Human = Human {
@@ -47,10 +48,26 @@ human3 :: Human
 human3 = Human "Famike" 47 Female Hispanic (Just "Jean") (Just PsychicControl)
 
 human4 :: Human
-human4 = Human "Caroline" 28 Female Asiatic Nothing Nothing
+human4 = Human "Caroline" 28 Female Mixed Nothing Nothing
 
 human5 :: Human
-human5 = Human "James" 28 Female Mixed (Just "Cyclops") (Just LaserSight)
+human5 = Human "James" 28 Female Mixed Nothing Nothing
+
+human6 :: Human
+human6 = Human "Diana" 19 Female Mixed Nothing Nothing
+
+human7 :: Human
+human7 = Human "Steve" 19 Male Mixed Nothing Nothing
+
+human8 :: Human
+human8 = Human "Max" 51 Male Caucasian (Just "Magneto") (Just Electromagnetism)
+
+human9 :: Human
+human9 = Human "Janet" 49 Male Hispanic (Just "The Wasp") (Just SuperSpeed)
+
 
 person1 :: Person
 person1 = Person human5 human1 human3 [] Single Nothing
+
+person2 :: Person
+person2 = Person human4 human8 human9 [] Single Nothing
