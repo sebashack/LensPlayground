@@ -1,7 +1,5 @@
 name:                Lenses
 version:             0.1.0.0
--- synopsis:
--- description:
 homepage:            https://github.com/githubuser/Lenses#readme
 license:             BSD3
 license-file:        LICENSE
@@ -25,6 +23,7 @@ library
                      , Getter
                      , Lens
                      , Iso
+                     , Person
   build-depends:       base >= 4.7 && < 5
                      , lens
                      , contravariant
