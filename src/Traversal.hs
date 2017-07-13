@@ -2,9 +2,7 @@
 
 module Traversal where
 
-import Segment
 import Person
-import Control.Monad (mapM)
 
 -- | Traversal Type
 type Traversal s t a b = forall f .
@@ -30,7 +28,7 @@ experimentWithHuman g (Human name' age' gender' ethnicity' _ superPower') =
 
 -- | Traverse a Person affecting its civil-status:
 --   Applicative f => (CivilStatus -> f (CivilStatus, Maybe Human)) -> Person -> f Person
---   When you affect a person's civil-status you also affect their couple.
+--   When you affect a person's civil-status you also affect their couple
 updatePersonCivilStatus :: Traversal Person Person CivilStatus (CivilStatus, Maybe Human)
 updatePersonCivilStatus g (Person self' father' mother' children' civilStatus' _) =
   let newCivilStatus = g civilStatus'
@@ -38,14 +36,14 @@ updatePersonCivilStatus g (Person self' father' mother' children' civilStatus' _
 
 -- | Traverse a Person affecting its children:
 --   Applicative f => (Human -> f Human) -> Person -> f Person
---   When you affect a person's civil-status you also affect their couple.
+--   When you affect a person's civil-status you also affect their couple
 updatePersonChildren :: Traversal Person Person [Human] [Human]
 updatePersonChildren g person =
   updateChildren person  <$> g (children person)
   where
     updateChildren p newChildren = p { children = newChildren }
 
--- | Traverse a Person affecting their super-powersw
+-- | Traverse a Person affecting their super-powers:
 --   Applicative f => (Maybe SuperPower -> f (Maybe (SuperPower, String))) -> Person -> f Person
 alterPersonSuperPowers :: Traversal Person Person (Maybe SuperPower) (Maybe (SuperPower, String))
 alterPersonSuperPowers g person =
