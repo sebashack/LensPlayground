@@ -37,7 +37,7 @@ updatePersonCivilStatus g (Person self' father' mother' children' civilStatus' _
   in Person self' father' mother' children' <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
 
 -- | Traverse a Person affecting its children:
---   Applicative f => (Human -> Human) -> Person -> f Person
+--   Applicative f => (Human -> f Human) -> Person -> f Person
 --   When you affect a person's civil-status you also affect their couple.
 updatePersonChildren :: Traversal Person Person [Human] [Human]
 updatePersonChildren g person =
@@ -56,9 +56,41 @@ alterPersonSuperPowers g person =
 -- | Traverse a person affecting their children's super-powers
 --   Applicative f => (Maybe SuperPower -> f (Maybe (SuperPower, String))) -> Person -> f Person
 alterPersonChildrenSuperPowers :: Traversal Person Person (Maybe SuperPower) (Maybe (SuperPower, String))
-alterPersonChildrenSuperPowers g person = updateChildren  person <$> sequenceA (experimentWithHuman g <$> children person)
+alterPersonChildrenSuperPowers g person =
+  updateChildren  person <$> sequenceA (experimentWithHuman g <$> children person)
   where
     updateChildren p newChildren = p { children = newChildren }
 
 
 -- | Value Examples
+
+psychicOrElectro :: Maybe SuperPower ->  IO (Maybe (SuperPower, String))
+psychicOrElectro Nothing = return . Just $ (Electromagnetism, "Electro Guy")
+psychicOrElectro _ = return . Just $ (PsychicControl, "Psychic Guy")
+
+speedcOrStrengh :: Maybe SuperPower ->  IO (Maybe (SuperPower, String))
+speedcOrStrengh Nothing = return . Just $ (SuperSpeed, "Fast Guy")
+speedcOrStrengh _ = return . Just $ (SuperStrengh, "Strong Guy")
+
+
+person1WithPower :: IO Person
+person1WithPower = alterPersonSuperPowers psychicOrElectro person1
+
+person2WithPower :: IO Person
+person2WithPower = alterPersonSuperPowers speedcOrStrengh person2
+
+person1WithChildren :: IO Person
+person1WithChildren =
+  person1WithPower >>= updatePersonChildren (return . (:) human6)
+
+person2WithChildren :: IO Person
+person2WithChildren =
+  person2WithPower >>= updatePersonChildren (return . (:) human7)
+
+person1WithSuperChildren :: IO Person
+person1WithSuperChildren =
+  person1WithChildren >>= alterPersonChildrenSuperPowers psychicOrElectro
+
+person2WithSuperChildren :: IO Person
+person2WithSuperChildren =
+  person2WithChildren >>= alterPersonChildrenSuperPowers speedcOrStrengh
