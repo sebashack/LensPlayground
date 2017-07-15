@@ -71,3 +71,6 @@ person1 = Person human5 human1 human3 [] Married (Just human4)
 
 person2 :: Person
 person2 = Person human4 human8 human9 [] Married (Just human5)
+
+person3 :: Person
+person3 = Person human2 human1 human3 [] Single Nothing
