@@ -3,7 +3,9 @@
 module Getter where
 
 import Getting
-import Segment
+import Person
+import Setter
+import Data.Monoid
 import Control.Monad.Reader
 import ReaderUtility (asks')
 import Control.Applicative
@@ -18,8 +20,14 @@ to f g s = Const . getConst $ g (f s)
 view :: Monad m => Getting a s a -> ReaderT s m a
 view l = asks' $ getConst . l Const
 
-getterPointX :: Getting Double Point Double
-getterPointX = to _positionX
 
-getterPointY :: Getting Double Point Double
-getterPointY = to _positionY
+-- | Value examples
+getHeroNames :: Human -> String
+getHeroNames (Human name' _ _ _ Nothing _) = name'
+getHeroNames (Human name' _ _ _ (Just heroName') _) = name' <> ", alias: " <> heroName'
+
+heroNamesGetter :: Getter Person String
+heroNamesGetter = to $ getHeroNames . self
+
+aHeroNames :: IO String
+aHeroNames = (runReaderT $ view heroNamesGetter) person1WithPower
