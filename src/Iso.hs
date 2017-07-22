@@ -8,7 +8,6 @@ import Person
 import Control.Monad.Reader
 import Data.Profunctor
 import Data.Functor.Identity
-import Setter (set)
 import Getter (view)
 
 -- | Exchange an ContraExchange types which are useful to define Isos

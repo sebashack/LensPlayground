@@ -23,6 +23,7 @@ library
                      , Getter
                      , Lens
                      , Iso
+                     , Prism
                      , Person
   build-depends:       base >= 4.7 && < 5
                      , lens

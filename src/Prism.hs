@@ -3,6 +3,8 @@
 module Prism where
 
 import Data.Profunctor hiding (Choice)
+import Setter (over)
+import Person
 
 class Profunctor p => Choice p where
   left :: p a b -> p (Either a c) (Either b c)
@@ -22,3 +24,20 @@ _Right = prism Right (either (Left . Left) Right)
 
 _Just :: Prism (Maybe a) (Maybe b) a b
 _Just = prism Just (maybe (Left Nothing) Right)
+
+
+-- | Value examples
+instance Choice (->) where
+  left f (Left a) = Left $ f a
+  left _ (Right c) = Right c
+
+  right f (Right a) = Right $ f a
+  right _ (Left c) = Left c
+
+
+
+electroCouple :: Maybe Human
+electroCouple = over _Just (\h -> h { superPower = Just Electromagnetism}) (couple person1)
+
+electroNothing :: Maybe Human
+electroNothing = over _Just (\h -> h { superPower = Just Electromagnetism}) (couple person3)
