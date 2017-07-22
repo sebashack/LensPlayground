@@ -1,11 +1,15 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Iso where
 
-import Segment
 import Data.Functor.Contravariant (Contravariant, (>$<), contramap)
+import Person
+import Control.Monad.Reader
 import Data.Profunctor
 import Data.Functor.Identity
+import Setter (set)
+import Getter (view)
 
 -- | Exchange an ContraExchange types which are useful to define Isos
 data Exchange a b s t = Exchange (s -> a) (b -> t)
@@ -48,8 +52,30 @@ withIso ai k =
 from :: AnIso s t a b -> Iso b a t s
 from ai = withIso ai $ \sa bt -> iso bt sa
 
-unmakePointIso :: Iso Point Point (Double, Double) (Double, Double)
-unmakePointIso = iso unmakePoint makePoint
 
-makePointIso :: Iso (Double, Double) (Double, Double) Point Point
-makePointIso = from unmakePointIso
+-- | Value examples
+type HTuple = ( String
+             , Int
+             , Gender
+             , Ethnicity
+             , Maybe String
+             , Maybe SuperPower)
+
+makeHuman :: HTuple -> Human
+makeHuman (name', age', gender', eth', heroNm', supPower') =
+  Human name' age' gender' eth' heroNm' supPower'
+
+unmakeHuman :: Human -> HTuple
+unmakeHuman Human{..} = (name, age, gender, ethnicity, heroName, superPower)
+
+unmakeHumanIso :: Iso Human Human HTuple HTuple
+unmakeHumanIso = iso unmakeHuman makeHuman
+
+makeHumanIso :: Iso HTuple HTuple Human Human
+makeHumanIso = from unmakeHumanIso
+
+humanTuple :: IO HTuple
+humanTuple = (runReaderT $ view unmakeHumanIso) human2
+
+aHuman :: IO Human
+aHuman = humanTuple >>= runReaderT (view makeHumanIso)

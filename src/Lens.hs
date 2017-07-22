@@ -20,6 +20,8 @@ lens f g h s =
       bt = g s
   in bt <$> h a
 
+
+-- | Value examples
 personCouple :: Lens Person Person (Maybe Human) (Maybe Human)
 personCouple = lens couple marryOrDivorce
   where
