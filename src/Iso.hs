@@ -54,11 +54,11 @@ from ai = withIso ai $ \sa bt -> iso bt sa
 
 -- | Value examples
 type HTuple = ( String
-             , Int
-             , Gender
-             , Ethnicity
-             , Maybe String
-             , Maybe SuperPower)
+              , Int
+              , Gender
+              , Ethnicity
+              , Maybe String
+              , Maybe SuperPower)
 
 makeHuman :: HTuple -> Human
 makeHuman (name', age', gender', eth', heroNm', supPower') =

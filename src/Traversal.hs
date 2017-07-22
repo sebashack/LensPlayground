@@ -1,4 +1,5 @@
-{-# LANGUAGE RankNTypes  #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Traversal where
 
@@ -21,18 +22,18 @@ traverse' = traverse
 --   Applicative f => (Maybe SuperPower -> f (Maybe (SuperPower, String))) -> Human -> f Human
 --   When you affect a Human's super-power, you also affect its heroName
 experimentWithHuman :: Traversal Human Human (Maybe SuperPower) (Maybe (SuperPower, String))
-experimentWithHuman g (Human name' age' gender' ethnicity' _ superPower') =
- let newPower = g superPower'
- in Human name' age' gender' ethnicity' <$> (fmap . fmap) snd newPower <*> (fmap . fmap) fst newPower
+experimentWithHuman g Human{..} =
+ let newPower = g superPower
+ in Human name age gender ethnicity <$> (fmap . fmap) snd newPower <*> (fmap . fmap) fst newPower
 
 
 -- | Traverse a Person affecting its civil-status:
 --   Applicative f => (CivilStatus -> f (CivilStatus, Maybe Human)) -> Person -> f Person
 --   When you affect a person's civil-status you also affect their couple
 updatePersonCivilStatus :: Traversal Person Person CivilStatus (CivilStatus, Maybe Human)
-updatePersonCivilStatus g (Person self' father' mother' children' civilStatus' _) =
-  let newCivilStatus = g civilStatus'
-  in Person self' father' mother' children' <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
+updatePersonCivilStatus g Person{..} =
+  let newCivilStatus = g civilStatus
+  in Person self father mother children <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
 
 -- | Traverse a Person affecting its children:
 --   Applicative f => (Human -> f Human) -> Person -> f Person

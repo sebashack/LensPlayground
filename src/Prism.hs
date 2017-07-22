@@ -20,10 +20,16 @@ prism bt sEa = dimap sEa (r bt) . right
     r f = either pure (fmap f)
 
 _Right :: Prism (Either c a) (Either c b) a b
-_Right = prism Right (either (Left . Left) Right)
+_Right = prism Right choiceFunc
+  where
+    choiceFunc :: Either a c -> Either (Either a b) c
+    choiceFunc = either (Left . Left) Right
 
 _Just :: Prism (Maybe a) (Maybe b) a b
-_Just = prism Just (maybe (Left Nothing) Right)
+_Just = prism Just choiceFunc
+  where
+    choiceFunc :: Maybe b -> Either (Maybe a) b
+    choiceFunc = maybe (Left Nothing) Right
 
 
 -- | Value examples
@@ -33,8 +39,6 @@ instance Choice (->) where
 
   right f (Right a) = Right $ f a
   right _ (Left c) = Left c
-
-
 
 electroCouple :: Maybe Human
 electroCouple = over _Just (\h -> h { superPower = Just Electromagnetism}) (couple person1)

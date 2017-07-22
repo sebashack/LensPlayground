@@ -1,4 +1,5 @@
-{-# LANGUAGE RankNTypes  #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Setter where
 
@@ -24,18 +25,18 @@ set setter v = over setter (const v)
 --   (Maybe SuperPower -> Identity (Maybe (SuperPower, String))) -> Human -> Identity Human
 --   When you affect a Human's super-power, you also affect its heroName
 experimentWithHuman :: Setter Human Human (Maybe SuperPower) (Maybe (SuperPower, String))
-experimentWithHuman g (Human name' age' gender' ethnicity' _ superPower') =
- let newPower = g superPower'
- in Human name' age' gender' ethnicity' <$> (fmap . fmap) snd newPower <*> (fmap . fmap) fst newPower
+experimentWithHuman g Human{..} =
+ let newPower = g superPower
+ in Human name age gender ethnicity <$> (fmap . fmap) snd newPower <*> (fmap . fmap) fst newPower
 
 
 -- | Traverse a Person affecting its civil-status:
 --   (CivilStatus -> Identity (CivilStatus, Maybe Human)) -> Person -> Identity Person
 --   When you affect a person's civil-status you also affect their couple
 updatePersonCivilStatus :: Setter Person Person CivilStatus (CivilStatus, Maybe Human)
-updatePersonCivilStatus g (Person self' father' mother' children' civilStatus' _) =
-  let newCivilStatus = g civilStatus'
-  in Person self' father' mother' children' <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
+updatePersonCivilStatus g Person{..} =
+  let newCivilStatus = g civilStatus
+  in Person self father mother children <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
 
 -- | Traverse a Person affecting its children:
 --   (Human -> Idetity Human) -> Person -> Identity Person
