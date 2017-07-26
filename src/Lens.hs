@@ -14,6 +14,7 @@ type Lens s t a b =
 
 type Lens' s a = Lens s s a a
 
+-- Get a Lens from a getter and a setter function
 lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens f g h s =
   let a = f s
@@ -25,11 +26,14 @@ lens f g h s =
 personCouple :: Lens Person Person (Maybe Human) (Maybe Human)
 personCouple = lens couple marryOrDivorce
   where
+    marryOrDivorce :: Person -> Maybe Human -> Person
     marryOrDivorce person Nothing = person { couple = Nothing, civilStatus = Divorced }
     marryOrDivorce person human = person { couple = human, civilStatus = Married }
 
 marriagedPerson :: Person
 marriagedPerson = set personCouple (Just human6) person3
 
+
+-- A Lens is a Getter
 aPersonCouple :: IO (Maybe Human)
 aPersonCouple = (runReaderT $ view personCouple) marriagedPerson

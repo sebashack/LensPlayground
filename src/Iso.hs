@@ -11,6 +11,7 @@ import Data.Functor.Identity
 import Getter (view)
 
 -- | Exchange an ContraExchange types which are useful to define Isos
+--   It like the container for two isomorphic functions
 data Exchange a b s t = Exchange (s -> a) (b -> t)
 
 data ContraExchange a b t s = ContraExchange (s -> a) (b -> t)
@@ -73,6 +74,7 @@ unmakeHumanIso = iso unmakeHuman makeHuman
 makeHumanIso :: Iso HTuple HTuple Human Human
 makeHumanIso = from unmakeHumanIso
 
+-- An Iso is a Lens and thus a Getter
 humanTuple :: IO HTuple
 humanTuple = (runReaderT $ view unmakeHumanIso) human2
 

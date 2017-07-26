@@ -36,11 +36,11 @@ updatePersonCivilStatus g Person{..} =
   in Person self father mother children <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
 
 -- | Traverse a Person affecting its children:
---   Applicative f => (Human -> f Human) -> Person -> f Person
+--   Applicative f => ([Human] -> f [Human]) -> Person -> f Person
 --   When you affect a person's civil-status you also affect their couple
 updatePersonChildren :: Traversal Person Person [Human] [Human]
 updatePersonChildren g person =
-  updateChildren person  <$> g (children person)
+  updateChildren person <$> g (children person)
   where
     updateChildren p newChildren = p { children = newChildren }
 

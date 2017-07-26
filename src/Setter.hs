@@ -39,7 +39,7 @@ updatePersonCivilStatus g Person{..} =
   in Person self father mother children <$> fmap fst newCivilStatus <*> fmap snd newCivilStatus
 
 -- | Traverse a Person affecting its children:
---   (Human -> Idetity Human) -> Person -> Identity Person
+--   ([Human] -> Idetity [Human]) -> Person -> Identity Person
 --   When you affect a person's civil-status you also affect their couple.
 updatePersonChildren :: Setter Person Person [Human] [Human]
 updatePersonChildren g person =

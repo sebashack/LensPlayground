@@ -13,6 +13,9 @@ class Profunctor p => Choice p where
 type Prism s t a b = forall p f .
   (Choice p, Applicative f) => p a (f b) -> p s (f t)
 
+-- | If we have a succesful target (b -> t) returns a signal of success.
+--   (s -> Either t a) is a function which access the whole with possibility of error.
+--   The signal error is of type t.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
 prism bt sEa = dimap sEa (r bt) . right
   where
@@ -40,6 +43,8 @@ instance Choice (->) where
   right f (Right a) = Right $ f a
   right _ (Left c) = Left c
 
+
+-- | Prisms are Lenses, and Traversals
 electroCouple :: Maybe Human
 electroCouple = over _Just (\h -> h { superPower = Just Electromagnetism}) (couple person1)
 

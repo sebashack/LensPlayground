@@ -1,4 +1,5 @@
-{-# LANGUAGE RankNTypes  #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Fold where
 
@@ -35,28 +36,28 @@ preview l = asks' $ getFirst . foldMapOf l (First . Just)
 -- | Collect the names of all family members of a superhero
 --   familyNames :: Fold Person Human
 familyNames :: Getting String Person Human
-familyNames g (Person _ father' mother' children' _ couple') =
-  let fa = "Father: " <> getConst (g father') <> ", "
-      mo = "Mother: "  <> getConst (g mother') <> ", "
-      co = maybe "" (("Couple: " <>) . getConst) (g <$> couple') <> ", "
-      cs = "Children: " <> unwords (fmap (getConst . g) children')
+familyNames g  Person{..} =
+  let fa = "Father: " <> getConst (g father) <> ", "
+      mo = "Mother: "  <> getConst (g mother) <> ", "
+      co = maybe "" (("Couple: " <>) . getConst) (g <$> couple) <> ", "
+      cs = "Children: " <> unwords (fmap (getConst . g) children)
   in Const (fa <> mo <> co <> cs)
 
 familyMembers :: Getting [Human] Person Human
-familyMembers g (Person _ father' mother' children' _ couple') =
-  let fa = getConst (g father')
-      mo = getConst (g mother')
-      co = fromMaybe [] (getConst . g <$> couple')
-      cs = concat $ (getConst . g) <$> children'
+familyMembers g Person{..} =
+  let fa = getConst (g father)
+      mo = getConst (g mother)
+      co = fromMaybe [] (getConst . g <$> couple)
+      cs = concat $ (getConst . g) <$> children
   in Const (fa <> mo <> co <> cs)
 
 previewHero :: Getting (First Human) Person Human
-previewHero g (Person self' father' mother' children' _ couple') =
-  let sf = getConst (g self')
-      fa = getConst (g father')
-      mo = getConst (g mother')
-      co = fromMaybe (First Nothing) (getConst . g <$> couple')
-      cs = mconcat $ (getConst . g) <$> children'
+previewHero g Person{..} =
+  let sf = getConst (g self)
+      fa = getConst (g father)
+      mo = getConst (g mother)
+      co = fromMaybe (First Nothing) (getConst . g <$> couple)
+      cs = mconcat $ (getConst . g) <$> children
   in Const (sf <> fa <> mo <> co <> cs)
 
 
